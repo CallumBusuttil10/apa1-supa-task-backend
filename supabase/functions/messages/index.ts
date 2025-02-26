@@ -14,7 +14,7 @@ serve(async (req: Request) => {
     // Handle GET request - fetch messages
     if (req.method === "GET") {
       const { data, error } = await supabase
-        .from("messages")
+        .from("employees")
         .select("*")
         .order("created_at", { ascending: false });
 
