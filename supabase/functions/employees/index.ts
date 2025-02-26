@@ -11,24 +11,24 @@ serve(async (req: Request) => {
   const headers = { "Content-Type": "application/json" };
 
   try {
-    // Handle GET request - fetch messages
+    // Handle GET request - fetch employees
     if (req.method === "GET") {
       const { data, error } = await supabase
-        .from("messages")
+        .from("employees")
         .select("*")
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: true });
 
       if (error) throw error;
       return new Response(JSON.stringify(data), { headers });
     }
 
-    // Handle POST request - add message
+    // Handle POST request - add employees
     if (req.method === "POST") {
-      const { message } = await req.json();
-      const { error } = await supabase.from("messages").insert([{ message }]);
+      const { first_name, last_name, job_title, email } = await req.json();
+      const { error } = await supabase.from("employees").insert([{ first_name, last_name, job_title, email }]);
       
       if (error) throw error;
-      return new Response(JSON.stringify({ success: true, message: "Message sent!" }), { headers });
+      return new Response(JSON.stringify({ success: true, message: "Employee added" }), { headers });
     }
 
     // Handle unsupported methods
