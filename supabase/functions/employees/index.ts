@@ -7,7 +7,6 @@ const supabaseServiceRoleKey = Deno.env.get("SUPABASE_SERVICE_ROLE_KEY")!;
 const supabase = createClient(supabaseUrl, supabaseServiceRoleKey);
 
 serve(async (req: Request) => {
-  // Simple content-type header is all we need
   const headers = { "Content-Type": "application/json" };
 
   try {
@@ -29,6 +28,29 @@ serve(async (req: Request) => {
       
       if (error) throw error;
       return new Response(JSON.stringify({ success: true, message: "Employee added" }), { headers });
+    }
+
+    // New PUT method for updates
+    if (req.method === "PUT") {
+      const { id, first_name, last_name, job_title, email } = await req.json();
+      
+      if (!id) {
+        return new Response(
+          JSON.stringify({ error: "Employee ID is required" }), 
+          { status: 400, headers }
+        );
+      }
+
+      const { error } = await supabase
+        .from("employees")
+        .update({ first_name, last_name, job_title, email })
+        .eq("id", id);
+
+      if (error) throw error;
+      return new Response(
+        JSON.stringify({ success: true, message: "Employee updated" }), 
+        { headers }
+      );
     }
 
     // Handle unsupported methods
