@@ -10,8 +10,30 @@ serve(async (req: Request) => {
   const headers = { "Content-Type": "application/json" };
 
   try {
-    // Handle GET request - fetch employees
+    // Handle GET request for single employee
     if (req.method === "GET") {
+      const url = new URL(req.url);
+      const pathParts = url.pathname.split('/');
+      const employeeId = pathParts[pathParts.length - 1];
+
+      // If employeeId exists in the path, fetch single employee
+      if (employeeId && employeeId !== "employees") {
+        const { data, error } = await supabase
+          .from("employees")
+          .select("*")
+          .eq("id", employeeId)
+          .single();
+
+        if (error) throw error;
+        if (!data) {
+          return new Response(
+            JSON.stringify({ error: "Employee not found" }),
+            { status: 404, headers }
+          );
+        }
+        return new Response(JSON.stringify(data), { headers });
+      }
+
       const { data, error } = await supabase
         .from("employees")
         .select("*")
