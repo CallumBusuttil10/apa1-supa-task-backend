@@ -75,6 +75,31 @@ serve(async (req: Request) => {
       );
     }
 
+    // Handle DELETE request
+    if (req.method === "DELETE") {
+      const url = new URL(req.url);
+      const pathParts = url.pathname.split('/');
+      const employeeId = pathParts[pathParts.length - 1];
+
+      if (!employeeId || employeeId === "employees") {
+        return new Response(
+          JSON.stringify({ error: "Employee ID is required" }),
+          { status: 400, headers }
+        );
+      }
+
+      const { error } = await supabase
+        .from("employees")
+        .delete()
+        .eq("id", employeeId);
+
+      if (error) throw error;
+      return new Response(
+        JSON.stringify({ success: true, message: "Employee deleted" }),
+        { headers }
+      );
+    }
+
     // Handle unsupported methods
     return new Response(JSON.stringify({ error: "Method not allowed" }), { 
       status: 405, 
@@ -87,5 +112,4 @@ serve(async (req: Request) => {
       status: 500, 
       headers 
     });
-  }
-});
+  }});
