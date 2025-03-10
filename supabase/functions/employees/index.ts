@@ -20,7 +20,13 @@ serve(async (req: Request) => {
       if (employeeId && employeeId !== "employees") {
         const { data, error } = await supabase
           .from("employees")
-          .select("*")
+          .select(`
+            *,
+            teams:team_id (
+              id,
+              team_name
+            )
+          `)
           .eq("id", employeeId)
           .single();
 
@@ -31,31 +37,55 @@ serve(async (req: Request) => {
             { status: 404, headers }
           );
         }
-        return new Response(JSON.stringify(data), { headers });
+
+        const formattedData = {
+          ...data,
+          team_name: data.teams ? data.teams.team_name : null,
+        };
+        delete formattedData.teams;
+
+        return new Response(JSON.stringify(formattedData), { headers });
       }
 
       const { data, error } = await supabase
         .from("employees")
-        .select("*")
+        .select(`
+          *,
+          teams:team_id (
+            id,
+            team_name
+          )
+        `)
         .order("created_at", { ascending: true });
 
       if (error) throw error;
-      return new Response(JSON.stringify(data), { headers });
+
+      // Transform all employee records
+      const formattedData = data.map(employee => {
+        const formattedEmployee = {
+          ...employee,
+          team_name: employee.teams ? employee.teams.team_name : null
+        };
+        delete formattedEmployee.teams;
+        return formattedEmployee;
+      });
+
+      return new Response(JSON.stringify(formattedData), { headers });
     }
 
     // Handle POST request - add employees
     if (req.method === "POST") {
-      const { first_name, last_name, job_title, email } = await req.json();
-      const { error } = await supabase.from("employees").insert([{ first_name, last_name, job_title, email }]);
-      
+      const { first_name, last_name, job_title, email, team_id } = await req.json();
+      const { error } = await supabase.from("employees").insert([{ first_name, last_name, job_title, email, team_id }]);
+
       if (error) throw error;
       return new Response(JSON.stringify({ success: true, message: "Employee added" }), { headers });
     }
 
     // New PUT method for updates
     if (req.method === "PUT") {
-      const { id, first_name, last_name, job_title, email } = await req.json();
-      
+      const { id, first_name, last_name, job_title, email, team_id } = await req.json();
+
       if (!id) {
         return new Response(
           JSON.stringify({ error: "Employee ID is required" }), 
@@ -65,7 +95,7 @@ serve(async (req: Request) => {
 
       const { error } = await supabase
         .from("employees")
-        .update({ first_name, last_name, job_title, email })
+        .update({ first_name, last_name, job_title, email, team_id })
         .eq("id", id);
 
       if (error) throw error;
