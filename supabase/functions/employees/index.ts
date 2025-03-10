@@ -104,7 +104,6 @@ serve(async (req: Request) => {
         { headers }
       );
     }
-
     // Handle DELETE request
     if (req.method === "DELETE") {
       const url = new URL(req.url);
