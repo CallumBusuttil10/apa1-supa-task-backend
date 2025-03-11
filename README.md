@@ -1,59 +1,79 @@
-# APA1 Supa Task Backend
+# Employee Management System
 
-This is where you'll design and deploy your API for access by your frontend
+## Project Overview
+This project is a companion application for APA-1 and serves as a **back-end** that implements a **RESTful API** for employee management. It provides **CRUD (Create, Read, Update, Delete)** operations for employee records, which are stored in a **Supabase database**.
 
-## Prerequisites
+The API is built as a **Supabase Edge Function**, running on **Deno**, which handles HTTP requests for managing employee data. It connects to a Supabase database using the **Supabase client** and performs operations based on the **HTTP method** of the request.
 
-- [Node.js](https://nodejs.org/) (v16 or newer)
-- [Supabase CLI](https://supabase.com/docs/guides/cli)
-- [curl](https://curl.se/) for testing functions locally
+---
 
-## Getting Started
+## **Technical Implementation**
 
-Before starting with this project please set up an account with [Supabase](https://supabase.com/)
+### **Technology Stack**
+**Deno** runtime environment  
+**Supabase** as the backend database  
 
-### 1. Clone the Repository
+---
 
-```bash
-git clone <repository-url>
-cd <repository-name>
-```
+## **CRUD Operations**
 
-### 2. Install Dependencies
+### **Read (GET) - Lines 8-49**
+**Get All Employees:** Retrieves all employees from the database along with their associated team information.  
+**Get Specific Employee:** Retrieves details of a specific employee when an **employee ID** is provided in the request path.  
+**Joins** employee data with team data to **include team names** in the response.
 
-`npm install`
+### **Create (POST) - Lines 51-56**
+**Accepts employee data** in the request body (**first name, last name, job title, email, team ID, salary, hire date**).  
+**Inserts** a new record into the **employees** table.  
+**Returns** a success message on completion.
 
-**Very important, if you are working on your project in cloud spaces prefix all your supabase commands with `npx`**
+### **Update (PUT) - Lines 58-77**
+**Receives updated employee information** including the **employee ID**.  
+**Validates** that an **ID is provided**.  
+**Updates** the corresponding employee record in the database.  
+**Returns** a success message on completion.
 
-### 3. Authenticate with Supabase
-The first step is to authenticate with Supabase:
+### **Delete (DELETE) - Lines 79-96**
+**Extracts** the employee ID from the **URL path**.  
+**Validates** that an **ID is provided**.  
+**Removes** the employee record from the database.  
+**Returns** a success message on completion.
 
-```bash
-supabase login
-```
+---
 
-This will open a browser window where you can authenticate with Supabase and generate an access token.
+## **Error Handling** (Lines 98-108)
+The function includes error handling to ensure smooth API operations:
 
-### 4. Link
+**Catches any exceptions** during request processing.  
+**Returns appropriate HTTP status codes** based on the error type.  
+**Formats error messages in JSON** for client consumption.
 
-Once authenticated, link your local project to your Supabase project:
+---
 
-```bash
-supabase link --project-ref your_project_id
-```
+## **Data Structure**
 
-### 5. Working with Edge Functions
+The **employees** table has the following fields:
 
-**Creating a New Edge Function**
+| Column Name  | Type          | Description |
+|-------------|--------------|-------------|
+| `id` | `int` (Primary Key) | Unique identifier for each employee |
+| `first_name` | `varchar` | Employee's first name |
+| `last_name` | `varchar` | Employee's last name |
+| `job_title` | `varchar` | Job title of the employee |
+| `email` | `varchar` | Employee's email address |
+| `created_at` | `timestamp` | Record creation timestamp |
+| `team_id` | `int` (Foreign Key) | References the `teams` table |
+| `salary` | `int` | Employee's salary |
+| `hire_date` | `date` | Employee's hiring date |
 
-```bash
-supabase functions new my-function-name
-```
 
-This creates a new function in supabase/functions/my-function-name/
+The API also retrieves **related team information** through a **foreign key relationship** with the `teams` table.
 
-**Deploying your Edge functions**
+The **teams** table has the following fields:
 
-```bash
-supabase functions deploy
-```
+| Column Name  | Type          | Description |
+|-------------|--------------|-------------|
+| `id` | `int` (Primary Key) | Unique identifier for each team |
+| `team_name` | `varchar` | Name of the team |
+
+---
